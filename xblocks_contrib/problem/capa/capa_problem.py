@@ -1150,6 +1150,18 @@ class LoncapaProblem:
 
         return problem_data
 
+    @staticmethod
+    def _preceding_prompt_ids(response, responsetype_id):
+        """Assign ids to contiguous preceding ``<p>`` siblings and return them in document order."""
+        ids = []
+        sibling = response.getprevious()
+        while sibling is not None and isinstance(sibling.tag, str) and sibling.tag.lower() == "p":
+            pid = sibling.get("id") or f"prompt_{responsetype_id}_{len(ids) + 1}"
+            sibling.set("id", pid)
+            ids.append(pid)
+            sibling = sibling.getprevious()
+        return list(reversed(ids))
+
     def response_a11y_data(  # pylint: disable=too-many-locals,too-many-branches
         self, response, inputfields, responsetype_id, problem_data
     ):
@@ -1193,11 +1205,14 @@ class LoncapaProblem:
             if group_description_ids:
                 response.set("multiinput-group_description_ids", " ".join(group_description_ids))
 
+            preceding_prompt_ids = self._preceding_prompt_ids(response, responsetype_id)
+
             for inputfield in inputfields:
                 problem_data[inputfield.get("id")] = {
                     "group_label": group_label_tag_text,
                     "label": HTML(inputfield.attrib.get("label", "")),
                     "descriptions": {},
+                    "additional_describedby_ids": list(preceding_prompt_ids),
                 }
         else:
             # Extract label value from <label> tag or label attribute from inside the responsetype
@@ -1242,4 +1257,5 @@ class LoncapaProblem:
             problem_data[inputfields[0].get("id")] = {
                 "label": HTML(label.strip()) if label else "",
                 "descriptions": descriptions,
+                "additional_describedby_ids": self._preceding_prompt_ids(response, responsetype_id),
             }
