@@ -320,7 +320,41 @@ class CAPAProblemTest(unittest.TestCase):
             "1_2_2": {"group_label": group_label, "label": input2_label, "descriptions": {}},
         }
 
-    def test_single_inputtypes(self):
+    def test_multiple_inputtypes_with_preceding_prompts(self):
+        """
+        Verify that preceding <p> prompts are associated with each inputfield
+        of a multi-input responsetype via additional_describedby_ids.
+        """
+        group_label = "Choose the correct color"
+        input1_label = "What color is the sky?"
+        input2_label = "What color are pine needles?"
+        xml = f"""
+        <problem>
+            <p>Instructions: pick a color from the dropdown.</p>
+            <p>Consider the context of each item.</p>
+            <optionresponse>
+                <label>{group_label}</label>
+                <optioninput options="('yellow','blue','green')" correct="blue" label="{input1_label}"/>
+                <optioninput options="('orange','blue','green')" correct="green" label="{input2_label}"/>
+            </optionresponse>
+        </problem>
+        """
+        problem = new_loncapa_problem(xml)
+        expected_prompt_ids = ["prompt_1_1_2", "prompt_1_1_1"]
+        assert problem.problem_data == {
+            "1_2_1": {
+                "group_label": group_label,
+                "label": input1_label,
+                "descriptions": {},
+                "additional_describedby_ids": expected_prompt_ids,
+            },
+            "1_2_2": {
+                "group_label": group_label,
+                "label": input2_label,
+                "descriptions": {},
+                "additional_describedby_ids": expected_prompt_ids,
+            },
+        }
         """
         Verify that HTML is correctly rendered when there is single inputtype.
         """
