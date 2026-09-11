@@ -1162,7 +1162,7 @@ class LoncapaProblem:
             sibling = sibling.getprevious()
         return list(reversed(ids))
 
-    def response_a11y_data(  # pylint: disable=too-many-locals,too-many-branches
+    def response_a11y_data(  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         self, response, inputfields, responsetype_id, problem_data
     ):
         """
