@@ -355,6 +355,8 @@ class CAPAProblemTest(unittest.TestCase):
                 "additional_describedby_ids": expected_prompt_ids,
             },
         }
+
+    def test_single_inputtypes(self):
         """
         Verify that HTML is correctly rendered when there is single inputtype.
         """
