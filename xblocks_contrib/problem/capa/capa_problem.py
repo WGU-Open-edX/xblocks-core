@@ -1205,15 +1205,21 @@ class LoncapaProblem:
             if group_description_ids:
                 response.set("multiinput-group_description_ids", " ".join(group_description_ids))
 
-            preceding_prompt_ids = self._preceding_prompt_ids(response, responsetype_id)
+            preceding_prompt_ids = (
+                self._preceding_prompt_ids(response, responsetype_id)
+                if inputfields[0].tag in ACCESSIBLE_CAPA_INPUT_TYPES
+                else []
+            )
 
             for inputfield in inputfields:
-                problem_data[inputfield.get("id")] = {
+                entry = {
                     "group_label": group_label_tag_text,
                     "label": HTML(inputfield.attrib.get("label", "")),
                     "descriptions": {},
-                    "additional_describedby_ids": list(preceding_prompt_ids),
                 }
+                if preceding_prompt_ids:
+                    entry["additional_describedby_ids"] = list(preceding_prompt_ids)
+                problem_data[inputfield.get("id")] = entry
         else:
             # Extract label value from <label> tag or label attribute from inside the responsetype
             responsetype_label_tag = response.find("label")
@@ -1254,8 +1260,12 @@ class LoncapaProblem:
                 response.remove(description)
                 description_id += 1
 
-            problem_data[inputfields[0].get("id")] = {
+            entry = {
                 "label": HTML(label.strip()) if label else "",
                 "descriptions": descriptions,
-                "additional_describedby_ids": self._preceding_prompt_ids(response, responsetype_id),
             }
+            if inputfields[0].tag in ACCESSIBLE_CAPA_INPUT_TYPES:
+                preceding_prompt_ids = self._preceding_prompt_ids(response, responsetype_id)
+                if preceding_prompt_ids:
+                    entry["additional_describedby_ids"] = preceding_prompt_ids
+            problem_data[inputfields[0].get("id")] = entry
